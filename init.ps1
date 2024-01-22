@@ -50,6 +50,18 @@ $scriptPath = $PWD.Path
 $pyvenvConfigPath = Join-Path $scriptPath "venv\pyvenv.cfg"
 Remove-Item -Path $pyvenvConfigPath -Force -ErrorAction SilentlyContinue
 
+# 替换 activate 文件中的 VIRTUAL_ENV
+$activateFilePath = Join-Path $scriptPath "venv\Scripts\activate"
+$activateContent = Get-Content -Path $activateFilePath -Raw
+$activateContent = $activateContent -replace 'VIRTUAL_ENV=".*"', 'VIRTUAL_ENV="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../"'
+$activateContent | Out-File -FilePath $activateFilePath -Encoding utf8
+
+# 替换 activate.bat 文件中的 VIRTUAL_ENV
+$activateFilePath = Join-Path $scriptPath "venv\Scripts\activate.bat"
+$activateContent = Get-Content -Path $activateFilePath -Raw
+$activateContent = $activateContent -replace 'set VIRTUAL_ENV=.*', 'set VIRTUAL_ENV=%~dp0\..'
+$activateContent | Out-File -FilePath $activateFilePath -Encoding utf8
+
 # 提取版本号
 $selectedVersion = [regex]::Match($selectedMatch, $pattern).Groups[1].Value
 
