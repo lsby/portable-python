@@ -1,4 +1,4 @@
-# portable_python
+# portable-python
 
 在当前目录生成全功能, 便携式的 python.
 
@@ -11,7 +11,7 @@
 在你希望创建环境的目录用 PowerShell 执行:
 
 ```
-irm "https://raw.githubusercontent.com/lsby/portable_python/main/init.ps1" | iex
+irm "https://raw.githubusercontent.com/lsby/portable-python/main/init.ps1" | iex
 ```
 
 ## 细节
