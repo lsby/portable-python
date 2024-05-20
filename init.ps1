@@ -65,7 +65,7 @@ $activateContent = $activateContent -replace [regex]::Escape("$scriptPath\venv")
 # 提取版本号
 $selectedVersion = [regex]::Match($selectedMatch, $pattern).Groups[1].Value
 
-# 创建`进入环境.cmd`文件
+# 创建`进入python环境.cmd`文件
 $scriptContent = @"
 setlocal enabledelayedexpansion
 
@@ -79,7 +79,7 @@ setlocal enabledelayedexpansion
 
 start .\venv\Scripts\activate.bat
 "@
-$scriptFilePath = Join-Path $scriptPath "进入环境.cmd"
+$scriptFilePath = Join-Path $scriptPath "进入python环境.cmd"
 [System.IO.File]::WriteAllLines($scriptFilePath, $scriptContent)
 
 Write-Output "完成"
