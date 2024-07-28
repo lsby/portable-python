@@ -23,7 +23,7 @@ Write-Output "用户选择了: $selectedMatch"
 # 下载
 Write-Output "开始下载..."
 $downloadUrl = "https://github.com/lsby/portable_python/releases/download/python/$selectedMatch"
-$localFileName = Split-Path $selectedMatch -Leaf
+$localFileName = "lsby-portable-python.zip"
 Invoke-WebRequest -Uri $downloadUrl -OutFile $localFileName
 Write-Output "下载完成..."
 
@@ -35,9 +35,9 @@ Write-Output "解压完成..."
 
 # 创建虚拟环境
 Write-Output "开始创建虚拟环境..."
-Remove-Item -Path ".\venv" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path ".\lsby-portable-python-venv" -Recurse -Force -ErrorAction SilentlyContinue
 $venvCommand = Join-Path $extractedFolder "python.exe"
-& $venvCommand -m venv venv
+& $venvCommand -m venv lsby-portable-python-venv
 Write-Output "虚拟环境创建完成..."
 
 Write-Output "正在做最后的处理..."
@@ -45,19 +45,15 @@ Write-Output "正在做最后的处理..."
 # 删除压缩包
 Remove-Item -Path $localFileName -Force -ErrorAction SilentlyContinue
 
-# 删除venv/pyvenv.cfg文件
-$scriptPath = $PWD.Path
-$pyvenvConfigPath = Join-Path $scriptPath "venv\pyvenv.cfg"
-Remove-Item -Path $pyvenvConfigPath -Force -ErrorAction SilentlyContinue
-
 # 替换 activate 文件
-$activateFilePath = Join-Path $scriptPath "venv\Scripts\activate"
+$scriptPath = $PWD.Path
+$activateFilePath = Join-Path $scriptPath "lsby-portable-python-venv\Scripts\activate"
 $activateContent = Get-Content -Path $activateFilePath -Raw
 $activateContent = $activateContent -replace [regex]::Escape("$scriptPath\venv"), '$( cd $( dirname ${BASH_SOURCE[0]} ) && pwd )/../'
 [System.IO.File]::WriteAllLines($activateFilePath, $activateContent)
 
 # 替换 activate.bat 文件
-$activateFilePath = Join-Path $scriptPath "venv\Scripts\activate.bat"
+$activateFilePath = Join-Path $scriptPath "lsby-portable-python-venv\Scripts\activate.bat"
 $activateContent = Get-Content -Path $activateFilePath -Raw
 $activateContent = $activateContent -replace [regex]::Escape("$scriptPath\venv"), '%~dp0\..'
 [System.IO.File]::WriteAllLines($activateFilePath, $activateContent)
@@ -65,21 +61,46 @@ $activateContent = $activateContent -replace [regex]::Escape("$scriptPath\venv")
 # 提取版本号
 $selectedVersion = [regex]::Match($selectedMatch, $pattern).Groups[1].Value
 
-# 创建`进入python环境.cmd`文件
+# 创建修复文件
 $scriptContent = @"
 setlocal enabledelayedexpansion
 
-(
-  echo home = %~dp0$extractedFolder
-  echo include-system-site-packages = false
-  echo version = $selectedVersion
-  echo executable = %~dp0$extractedFolder\python.exe
-  echo command = %~dp0$extractedFolder\python.exe -m venv %~dp0venv
-) > %~dp0/venv/pyvenv.cfg
+set "charset=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+set "length=8"
+set "randStr="
+for /l %%i in (1,1,%length%) do (
+    set /a "index=!random! %% 62"
+    for %%j in (!index!) do set "randStr=!randStr!!charset:~%%j,1!"
+)
 
-start .\venv\Scripts\activate.bat
+set "venvTemp=lsby-portable-python-venv-%randStr%"
+rename lsby-portable-python-venv !venvTemp!
+
+set venvCommand=.\lsby-portable-python\python.exe
+%venvCommand% -m venv lsby-portable-python-venv
+
+for /d %%d in (.\"!venvTemp!\"\*) do (
+    if /i not "%%~nxd"=="Scripts" (
+        if exist .\lsby-portable-python-venv\"%%~nxd" rmdir /s /q .\lsby-portable-python-venv\"%%~nxd"
+        move "%%d" .\lsby-portable-python-venv
+    )
+)
+
+rmdir /s /q !venvTemp!
+
+endlocal
+
+start .\lsby-portable-python-venv\Scripts\activate.bat
 "@
-$scriptFilePath = Join-Path $scriptPath "进入python环境.cmd"
+$scriptFilePath = Join-Path $scriptPath "lsby-portable-python-修复并进入python环境.cmd"
+[System.IO.File]::WriteAllLines($scriptFilePath, $scriptContent)
+
+# 创建进入环境文件
+$scriptContent = @"
+@echo off
+start .\lsby-portable-python-venv\Scripts\activate.bat
+"@
+$scriptFilePath = Join-Path $scriptPath "lsby-portable-python-进入python环境.cmd"
 [System.IO.File]::WriteAllLines($scriptFilePath, $scriptContent)
 
 Write-Output "完成"
