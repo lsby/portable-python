@@ -1,23 +1,32 @@
+param (
+    [string]$selectedMatch  # 用于接收指定的版本
+)
+
 $ErrorActionPreference = "Stop"
 
-# 获取选项
-Write-Output "获取可选择的版本..."
-$url = "https://github.com/lsby/portable_python/releases/expanded_assets/python"
-$response = Invoke-WebRequest -Uri $url
-$htmlContent = $response.Content
-$pattern = 'python-(\d+\.\d+\.\d+)-amd64.zip'
-$matches = [regex]::Matches($htmlContent, $pattern)
-$uniqueMatches = @{}
-foreach ($match in $matches) {
-    $uniqueMatches[$match.Value] = $true
+# 如果没有传入版本，则获取可选版本并弹出选择界面
+if (-not $selectedMatch) {
+    Write-Output "获取可选择的版本..."
+    $url = "https://github.com/lsby/portable_python/releases/expanded_assets/python"
+    $response = Invoke-WebRequest -Uri $url
+    $htmlContent = $response.Content
+    $pattern = 'python-(\d+\.\d+\.\d+)-amd64.zip'
+    $matches = [regex]::Matches($htmlContent, $pattern)
+    $uniqueMatches = @{}
+    foreach ($match in $matches) {
+        $uniqueMatches[$match.Value] = $true
+    }
+
+    # 弹出选择界面
+    $selectedMatch = $uniqueMatches.Keys | Out-GridView -Title "Select a match" -OutputMode Single
+
+    # 如果用户没有选择任何版本，退出脚本
+    if ([string]::IsNullOrEmpty($selectedMatch)) {
+        Write-Output "用户没有选择任何版本, 脚本将退出..."
+        exit
+    }
 }
 
-# 用户选择
-$selectedMatch = $uniqueMatches.Keys | Out-GridView -Title "Select a match" -OutputMode Single
-if ([string]::IsNullOrEmpty($selectedMatch)) {
-    Write-Output "用户没有选择任何版本, 脚本将退出..."
-    exit
-}
 Write-Output "用户选择了: $selectedMatch"
 
 # 下载
