@@ -10,14 +10,22 @@
 
 ## 使用
 
-在你希望创建环境的目录用 PowerShell 执行:
+在希望创建环境的目录用 PowerShell 执行:
 
 ```
-irm "https://raw.githubusercontent.com/lsby/portable-python/main/init.ps1" | iex
+irm "https://raw.githubusercontent.com/one-click-run/portable-python/main/init.ps1" | iex
 ```
 
-## 细节
+也可以直接指定版本:
 
-使用原版 python 安装程序进行安装, 然后将安装目录打包, 就得到了便携式的 python 环境.
+```
+$env:ONE_CLICK_RUN_PORTABLE_PYTHON_SELECTEDMATCH = 'python-3.10.11-amd64.zip'; irm 'https://raw.githubusercontent.com/one-click-run/portable-python/main/init.ps1' | iex
+```
 
-然后使用该环境创建虚拟环境, 就得到了一个简单易用的 python 环境.
+## 注意
+
+当环境目录发生变化时, 应当执行修复脚本.
+
+## 说明
+
+本仓库提供的 zip 包是使用官方 python 安装程序进行安装, 然后将安装目录打包得到的.
