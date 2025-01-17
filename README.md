@@ -29,3 +29,5 @@ $env:ONE_CLICK_RUN_PORTABLE_PYTHON_SELECTEDMATCH = 'python-3.10.11-amd64.zip'; i
 ## 说明
 
 本仓库提供的 zip 包是使用官方 python 安装程序进行安装, 然后将安装目录打包得到的.
+
+如果你不信任我提供的文件, 可以在这里下载: https://www.python.org/downloads, 将其安装到任意路径, 并将路径打包.
